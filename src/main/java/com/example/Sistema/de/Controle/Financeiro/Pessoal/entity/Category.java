@@ -1,6 +1,6 @@
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.entity;
 
-import com.example.Sistema.de.Controle.Financeiro.Pessoal.enums.CategoryType; // Importe o Enum
+import com.example.Sistema.de.Controle.Financeiro.Pessoal.enums.CategoryType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,28 +23,23 @@ public class Category {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Enumerated(EnumType.STRING) // Diz ao JPA para armazenar o Enum como String no banco
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private CategoryType type;
 
-    // Relacionamento: Muitas Categorias pertencem a um Usuário
-    // Este é o lado "dono" do relacionamento com User (User tem mappedBy="user")
-    @ManyToOne(fetch = FetchType.LAZY) // LAZY é bom para performance
-    @JoinColumn(name = "user_id", nullable = false) // Define a coluna de chave estrangeira
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Relacionamento: Uma Categoria pode ter várias Transações
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Transaction> transactions = new ArrayList<>();
 
-    // Construtor customizado
     public Category(String name, CategoryType type, User user) {
         this.name = name;
         this.type = type;
         this.user = user;
     }
 
-    // Métodos utilitários para gerenciar o relacionamento com Transaction (se necessário)
     public void addTransaction(Transaction transaction) {
         this.transactions.add(transaction);
         transaction.setCategory(this);

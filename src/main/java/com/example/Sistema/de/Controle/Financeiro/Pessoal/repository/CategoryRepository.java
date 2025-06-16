@@ -1,4 +1,4 @@
-package com.example.Sistema.de.Controle.Financeiro.Pessoal.UserRepository;
+package com.example.Sistema.de.Controle.Financeiro.Pessoal.repository;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.Category;
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.User;
