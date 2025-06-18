@@ -23,4 +23,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     // Encontra uma categoria específica de um usuário pelo ID da categoria e pelo ID do usuário
     // Útil para garantir que um usuário só acesse/modifique suas próprias categorias
     Optional<Category> findByIdAndUserId(Long categoryId, Long userId);
+
+    boolean existsByIdAndUserId(Long categoryId, Long userId);
 }
+

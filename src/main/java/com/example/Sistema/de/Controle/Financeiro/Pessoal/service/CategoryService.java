@@ -64,4 +64,8 @@ public class CategoryService {
         dto.setType(category.getType());
         return dto;
     }
+
+    public CategoryDto updateCategory(Long id, CategoryDto categoryDto, String name) {
+        return null;
+    }
 }
