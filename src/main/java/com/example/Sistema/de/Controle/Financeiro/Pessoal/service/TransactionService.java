@@ -1,6 +1,8 @@
+// src/main/java/com/example/Sistema/de/Controle/Financeiro/Pessoal/service/TransactionService.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.service;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.BalanceDto;
+import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.CategoryExpenseDto; // <--- CORREÇÃO: Importar CategoryExpenseDto
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.TransactionDto;
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.Category;
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.Transaction;
@@ -28,16 +30,14 @@ public class TransactionService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    private User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + email));
     }
 
-    // --- MÉTODOS CRUD ---
-
     @Transactional
-    public TransactionDto createTransaction(TransactionDto transactionDto, String username) {
-        User user = getUserByUsername(username);
+    public TransactionDto createTransaction(TransactionDto transactionDto, String userEmail) {
+        User user = getUserByEmail(userEmail);
         Category category = categoryRepository.findByIdAndUserId(transactionDto.getCategoryId(), user.getId())
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada ou não pertence ao usuário"));
         Transaction transaction = new Transaction();
@@ -51,8 +51,8 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionDto> getTransactionsByUser(String username) {
-        User user = getUserByUsername(username);
+    public List<TransactionDto> getTransactionsByUser(String userEmail) {
+        User user = getUserByEmail(userEmail);
         return transactionRepository.findByUserOrderByDateDesc(user)
                 .stream()
                 .map(this::mapToDto)
@@ -60,8 +60,8 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionDto updateTransaction(Long transactionId, TransactionDto transactionDto, String username) {
-        User user = getUserByUsername(username);
+    public TransactionDto updateTransaction(Long transactionId, TransactionDto transactionDto, String userEmail) {
+        User user = getUserByEmail(userEmail);
         Transaction transaction = transactionRepository.findByIdAndUserId(transactionId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Transação não encontrada ou não pertence ao usuário"));
         Category category = categoryRepository.findByIdAndUserId(transactionDto.getCategoryId(), user.getId())
@@ -75,27 +75,25 @@ public class TransactionService {
     }
 
     @Transactional
-    public void deleteTransaction(Long transactionId, String username) {
-        User user = getUserByUsername(username);
+    public void deleteTransaction(Long transactionId, String userEmail) {
+        User user = getUserByEmail(userEmail);
         if (!transactionRepository.existsByIdAndUserId(transactionId, user.getId())) {
             throw new RuntimeException("Transação não encontrada ou não pertence ao usuário");
         }
         transactionRepository.deleteById(transactionId);
     }
 
-    // --- MÉTODOS DE RELATÓRIO ---
-
     @Transactional(readOnly = true)
-    public BalanceDto calculateUserBalance(String username) {
-        User user = getUserByUsername(username);
+    public BalanceDto calculateUserBalance(String userEmail) {
+        User user = getUserByEmail(userEmail);
         BigDecimal balance = transactionRepository.calculateBalanceByUserId(user.getId())
                 .orElse(BigDecimal.ZERO);
         return new BalanceDto(balance);
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionDto> getTransactionsByPeriod(String username, LocalDate startDate, LocalDate endDate) {
-        User user = getUserByUsername(username);
+    public List<TransactionDto> getTransactionsByPeriod(String userEmail, LocalDate startDate, LocalDate endDate) {
+        User user = getUserByEmail(userEmail);
         List<Transaction> transactions = transactionRepository.findByUserAndDateBetweenOrderByDateDesc(user, startDate, endDate);
         return transactions.stream()
                 .map(this::mapToDto)
@@ -103,8 +101,8 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionDto> getTransactionsByCategory(String username, Long categoryId) {
-        User user = getUserByUsername(username);
+    public List<TransactionDto> getTransactionsByCategory(String userEmail, Long categoryId) {
+        User user = getUserByEmail(userEmail);
         Category category = categoryRepository.findByIdAndUserId(categoryId, user.getId())
                 .orElseThrow(() -> new RuntimeException("Categoria não encontrada ou não pertence ao usuário"));
         List<Transaction> transactions = transactionRepository.findByUserAndCategoryOrderByDateDesc(user, category);
@@ -113,7 +111,18 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
-    // --- MÉTODO AUXILIAR ---
+    // --- NOVOS MÉTODOS PARA GRÁFICOS (Retornam CategoryExpenseDto) ---
+    @Transactional(readOnly = true)
+    public List<CategoryExpenseDto> getTotalExpensesByCategory(String userEmail) { // <--- userEmail aqui
+        User user = getUserByEmail(userEmail);
+        return transactionRepository.findTotalExpensesByCategory(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoryExpenseDto> getTotalIncomesByCategory(String userEmail) { // <--- userEmail aqui
+        User user = getUserByEmail(userEmail);
+        return transactionRepository.findTotalIncomesByCategory(user.getId());
+    }
 
     private TransactionDto mapToDto(Transaction transaction) {
         TransactionDto dto = new TransactionDto();

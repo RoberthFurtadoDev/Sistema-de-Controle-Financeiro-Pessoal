@@ -1,10 +1,13 @@
+// src/main/java/com/example/Sistema/de/Controle/Financeiro/Pessoal/controller/ReportController.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.controller;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.BalanceDto;
+import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.CategoryExpenseDto; // <--- Importar
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.TransactionDto;
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,8 +42,21 @@ public class ReportController {
     public ResponseEntity<List<TransactionDto>> getTransactionsByCategory(
             @PathVariable Long categoryId,
             Principal principal) {
-
+        // Removido o try-catch local, pois o GlobalExceptionHandler cuidará das RuntimeExceptions.
         List<TransactionDto> transactions = transactionService.getTransactionsByCategory(principal.getName(), categoryId);
         return ResponseEntity.ok(transactions);
+    }
+
+    // --- NOVOS ENDPOINTS PARA GRÁFICOS ---
+    @GetMapping("/expenses-by-category")
+    public ResponseEntity<List<CategoryExpenseDto>> getExpensesByCategory(Principal principal) {
+        List<CategoryExpenseDto> expenses = transactionService.getTotalExpensesByCategory(principal.getName());
+        return ResponseEntity.ok(expenses);
+    }
+
+    @GetMapping("/incomes-by-category")
+    public ResponseEntity<List<CategoryExpenseDto>> getIncomesByCategory(Principal principal) {
+        List<CategoryExpenseDto> incomes = transactionService.getTotalIncomesByCategory(principal.getName());
+        return ResponseEntity.ok(incomes);
     }
 }

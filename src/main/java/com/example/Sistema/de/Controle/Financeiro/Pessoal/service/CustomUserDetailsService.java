@@ -1,3 +1,4 @@
+// src/main/java/com/example/Sistema/de/Controle/Financeiro/Pessoal/service/CustomUserDetailsService.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.service;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.User;
@@ -18,14 +19,16 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Utilizador não encontrado com o nome: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException { // <--- PARAMETRO É EMAIL
+        // Busca o usuário pelo email
+        User user = userRepository.findByEmail(email) // <--- USAR findByEmail AQUI
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o e-mail: " + email));
 
-        // PONTO CRÍTICO: Garante que o utilizador tem a permissão "ROLE_USER".
-        // Sem isto, mesmo autenticado, ele não tem autorização.
+        // Retorna um UserDetails do Spring Security.
+        // O primeiro parâmetro (username) DEVE ser o e-mail que foi usado para buscar,
+        // pois é isso que o Spring Security vai comparar com o que foi digitado no campo "username" do AuthenticationToken.
         return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
+                user.getEmail(), // <--- USAR user.getEmail() AQUI
                 user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
         );

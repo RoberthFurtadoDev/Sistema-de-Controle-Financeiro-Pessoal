@@ -1,3 +1,4 @@
+// src/main/java/com/example/Sistema/de.Controle.Financeiro.Pessoal/controller/AuthController.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.controller;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.LoginDto;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
+import java.util.Map; // <--- Importar
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,16 +36,17 @@ public class AuthController {
         }
     }
 
-    // NOVO ENDPOINT DE LOGIN
+    // ENDPOINT DE LOGIN
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
         try {
             String token = authService.loginUser(loginDto);
-            // Retorna o token em um objeto JSON para facilitar o consumo no frontend
+            // Retorna o token em um objeto JSON
             return ResponseEntity.ok(Collections.singletonMap("token", token));
         } catch (Exception e) {
-            // Captura falhas de autenticação (usuário/senha inválidos)
-            return new ResponseEntity<>("Usuário ou senha inválidos.", HttpStatus.UNAUTHORIZED);
+            // CORREÇÃO: Retorna um objeto JSON com a mensagem de erro
+            Map<String, String> errorResponse = Collections.singletonMap("message", "Usuário ou senha inválidos.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED); // <--- CORREÇÃO AQUI: Retorna JSON
         }
     }
 }

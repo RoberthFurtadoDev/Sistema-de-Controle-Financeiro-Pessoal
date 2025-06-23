@@ -1,3 +1,4 @@
+// src/main/java/com/example.Sistema.de.Controle.Financeiro.Pessoal/config/JwtAuthFilter.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.config;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.service.CustomUserDetailsService;
@@ -13,10 +14,11 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import org.springframework.security.core.AuthenticationException; // Importar
+import org.springframework.security.authentication.BadCredentialsException; // Importar
 
 import java.io.IOException;
 
@@ -25,18 +27,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
-    private final SecurityContextRepository securityContextRepository;
 
-    /**
-     * Construtor modificado para injeção de dependências.
-     * O Spring fornecerá as instâncias de JwtService e CustomUserDetailsService.
-     * Nós mesmos criamos a instância do repositório de contexto padrão.
-     */
     @Autowired
-    public JwtAuthFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
+    public JwtAuthFilter(
+            JwtService jwtService,
+            CustomUserDetailsService userDetailsService
+    ) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
-        this.securityContextRepository = new RequestAttributeSecurityContextRepository();
     }
 
     @Override
@@ -50,49 +48,64 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
+        // Lida com CORS preflight (OPTIONS requests)
+        if (request.getMethod().equals("OPTIONS")) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Se o cabeçalho Authorization não existe ou não começa com "Bearer ", passa para o próximo filtro.
+        // O SecurityFilterChain vai decidir se a rota é protegida e, se for, o AuthenticationEntryPoint será acionado.
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        jwt = authHeader.substring(7); // Extrai o token JWT (remove "Bearer ")
         try {
             username = jwtService.extractUsername(jwt);
         } catch (Exception e) {
-            // Se houver um erro ao extrair o nome de usuário (ex: token expirado),
-            // simplesmente passamos para o próximo filtro. A segurança não será aplicada.
-            filterChain.doFilter(request, response);
-            return;
+            // Se houver um erro ao extrair o nome de usuário (ex: token malformado ou corrompido),
+            // lançamos uma exceção BadCredentialsException.
+            System.err.println("Erro ao extrair username do JWT ou token inválido: " + e.getMessage());
+            throw new BadCredentialsException("Token de autenticação inválido."); // <--- Lançar a exceção de verdade
         }
 
-        // Verifica se o usuário não está autenticado ainda
+        // Se o nome de usuário foi extraído e o usuário ainda não está autenticado no contexto de segurança atual
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
+            // Valida o token JWT. Se for inválido, lança uma exceção.
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                // Cria um novo contexto de segurança vazio
+                // Se o token é válido, cria e define o contexto de segurança
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
 
-                // Cria o token de autenticação
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
-                        null,
-                        userDetails.getAuthorities()
+                        null, // Credenciais (senha) não são armazenadas no token
+                        userDetails.getAuthorities() // Papéis/autoridades do usuário
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // Define a autenticação no novo contexto
                 context.setAuthentication(authToken);
-
-                // Define o novo contexto no SecurityContextHolder (para a thread atual)
-                SecurityContextHolder.setContext(context);
-
-                // **A SOLUÇÃO DEFINITIVA:**
-                // Salva o contexto no repositório para que ele seja propagado
-                // para os próximos filtros da cadeia de segurança.
-                this.securityContextRepository.saveContext(context, request, response);
+                SecurityContextHolder.setContext(context); // Define o contexto para a thread atual
+            } else {
+                // SE O TOKEN NÃO FOR VÁLIDO (EXPIRADO, ALTERADO, ETC.), LANÇAR EXCEÇÃO
+                System.err.println("Token JWT para o usuário " + username + " é inválido ou expirado.");
+                throw new BadCredentialsException("Token de autenticação expirado ou inválido."); // <--- Lançar a exceção de verdade
             }
         }
+        // Continua a cadeia de filtros se a autenticação foi bem-sucedida ou se a requisição não precisa de autenticação aqui.
         filterChain.doFilter(request, response);
+    }
+
+    // SOBRESCREVER O MÉTODO shouldNotFilter PARA IGNORAR /api/auth/**
+    // Isso garante que o JwtAuthFilter NÃO rode para as rotas de autenticação,
+    // o que é crucial para que o login e registro funcionem sem um token.
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/auth/");
     }
 }

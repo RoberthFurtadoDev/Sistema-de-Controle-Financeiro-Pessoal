@@ -1,7 +1,8 @@
+// src/main/java/com/example/Sistema/de/Controle/Financeiro/Pessoal/repository/CategoryRepository.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.repository;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.Category;
-import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.User;
+import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.User; // Importar User
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,19 +12,12 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    // Encontra todas as categorias de um usuário específico
-    List<Category> findByUser(User user);
+    // Método para encontrar categorias por usuário, ordenadas por nome
+    List<Category> findByUserOrderByNameAsc(User user); // <--- MÉTODO ADICIONADO AQUI
 
-    // Encontra todas as categorias de um usuário específico pelo ID do usuário
-    List<Category> findByUserId(Long userId);
+    // Método para encontrar categoria por ID e ID do usuário
+    Optional<Category> findByIdAndUserId(Long id, Long userId);
 
-    // Encontra uma categoria específica de um usuário pelo nome da categoria e pelo usuário
-    Optional<Category> findByNameAndUser(String name, User user);
-
-    // Encontra uma categoria específica de um usuário pelo ID da categoria e pelo ID do usuário
-    // Útil para garantir que um usuário só acesse/modifique suas próprias categorias
-    Optional<Category> findByIdAndUserId(Long categoryId, Long userId);
-
-    boolean existsByIdAndUserId(Long categoryId, Long userId);
+    // Método para verificar se uma categoria existe por ID e ID do usuário
+    Boolean existsByIdAndUserId(Long id, Long userId);
 }
-

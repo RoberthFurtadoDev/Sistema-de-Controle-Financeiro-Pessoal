@@ -1,3 +1,4 @@
+// src/main/java/com/example/Sistema/de/Controle/Financeiro/Pessoal/repository/UserRepository.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.repository;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.entity.User;
@@ -9,12 +10,11 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // Spring Data JPA criará a implementação para este método automaticamente
     Optional<User> findByUsername(String username);
-
-    // Método para verificar se um username já existe
     Boolean existsByUsername(String username);
-
-    // Método para verificar se um email já existe
+    Optional<User> findByEmail(String email); // Método adicionado anteriormente
     Boolean existsByEmail(String email);
+
+    // <--- NOVO MÉTODO: Encontrar usuário pelo token de redefinição de senha --->
+    Optional<User> findByResetPasswordToken(String resetPasswordToken);
 }

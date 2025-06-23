@@ -1,7 +1,9 @@
+// src/main/java/com/example.Sistema.de.Controle.Financeiro.Pessoal/config/SecurityConfig.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,16 +18,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
-    // A forma mais robusta: injeção de todas as dependências via construtor.
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserDetailsService userDetailsService) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
@@ -48,19 +51,39 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Não autorizado: Acesso requer autenticação.");
+        };
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Acesso Proibido: Você não tem permissão para acessar este recurso.");
+        };
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                // PRIMEIRO, definimos as regras de autorização.
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                // SEGUNDO, definimos a política de sessão.
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // TERCEIRO, definimos nosso provedor de autenticação.
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
+                )
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permite OPTIONS para tudo (preflight CORS)
+                        .requestMatchers("/api/auth/**").permitAll() // Rotas de autenticação abertas (/login, /register)
+                        .requestMatchers("/h2-console/**").permitAll() // H2 Console aberto
+                        .requestMatchers("/api/password-reset/**").permitAll() // <--- CORREÇÃO: Endpoint de redefinição de senha público
+                        .requestMatchers("/api/**").authenticated() // Todas as outras rotas /api/** exigem autenticação
+                        .anyRequest().authenticated() // Qualquer outra rota (não-API) também exige autenticação por padrão
+                )
                 .authenticationProvider(authenticationProvider())
-                // QUARTO, adicionamos nosso filtro JWT.
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -1,3 +1,4 @@
+// src/main/java/com/example/Sistema/de/Controle/Financeiro/Pessoal/controller/CurrencyController.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.controller;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.CurrencyApiResponseDto;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal; // <--- Importar
+
 @RestController
 @RequestMapping("/api/currency")
 public class CurrencyController {
@@ -18,9 +21,12 @@ public class CurrencyController {
 
     // Endpoint para buscar as cotações com base em uma moeda. Ex: /api/currency/rates/BRL
     @GetMapping("/rates/{baseCurrency}")
-    public ResponseEntity<CurrencyApiResponseDto> getLatestRates(@PathVariable String baseCurrency) {
-        CurrencyApiResponseDto rates = currencyService.getLatestRates(baseCurrency.toUpperCase());
+    public ResponseEntity<CurrencyApiResponseDto> getLatestRates(
+            @PathVariable String baseCurrency,
+            Principal principal) { // <--- Adicionado Principal
+
+        // O CurrencyService espera o userEmail como segundo parâmetro
+        CurrencyApiResponseDto rates = currencyService.getLatestRates(baseCurrency.toUpperCase(), principal.getName()); // <--- Passando principal.getName()
         return ResponseEntity.ok(rates);
     }
 }
-    
