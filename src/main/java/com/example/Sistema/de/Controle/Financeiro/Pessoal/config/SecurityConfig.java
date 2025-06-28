@@ -1,4 +1,4 @@
-// src/main/java/com/example.Sistema.de.Controle.Financeiro.Pessoal/config/SecurityConfig.java
+// src/main/java/com/example/Sistema/de.Controle.Financeiro.Pessoal/config/SecurityConfig.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.config;
 
 import org.springframework.context.annotation.Bean;
@@ -76,12 +76,12 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler())
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Permite OPTIONS para tudo (preflight CORS)
-                        .requestMatchers("/api/auth/**").permitAll() // Rotas de autenticação abertas (/login, /register)
-                        .requestMatchers("/h2-console/**").permitAll() // H2 Console aberto
-                        .requestMatchers("/api/password-reset/**").permitAll() // <--- CORREÇÃO: Endpoint de redefinição de senha público
-                        .requestMatchers("/api/**").authenticated() // Todas as outras rotas /api/** exigem autenticação
-                        .anyRequest().authenticated() // Qualquer outra rota (não-API) também exige autenticação por padrão
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/api/password-reset/**").permitAll()
+                        .requestMatchers("/api/**").authenticated() // <--- Os novos endpoints /api/users/** serão autenticados aqui
+                        .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

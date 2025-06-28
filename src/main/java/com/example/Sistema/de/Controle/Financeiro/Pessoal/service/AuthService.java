@@ -1,4 +1,4 @@
-// src/main/java/com/example/Sistema/de.Controle.Financeiro.Pessoal/service/AuthService.java
+// src/main/java/com/example/Sistema.de.Controle.Financeiro.Pessoal/service/AuthService.java
 package com.example.Sistema.de.Controle.Financeiro.Pessoal.service;
 
 import com.example.Sistema.de.Controle.Financeiro.Pessoal.dto.LoginDto;
@@ -48,26 +48,32 @@ public class AuthService {
 
     public String loginUser(LoginDto loginDto) {
         try {
-            System.out.println("Attempting authentication for email: " + loginDto.getEmail()); // Log de debug
+            System.out.println("Attempting authentication for email: " + loginDto.getEmail());
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginDto.getEmail(),
+                            loginDto.getEmail(), // Usa e-mail para autenticar
                             loginDto.getPassword()
                     )
             );
-            System.out.println("Authentication successful for: " + authentication.getName()); // Log de debug
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtService.generateToken(userDetails);
-            System.out.println("JWT Token generated: " + token); // Log de debug
+            System.out.println("Authentication successful for: " + authentication.getName());
+
+            // Após a autenticação, recuperamos o usuário completo pelo e-mail
+            // para obter o nome de usuário (display name) que está na entidade User.
+            User user = userRepository.findByEmail(loginDto.getEmail())
+                    .orElseThrow(() -> new RuntimeException("Erro interno: Usuário autenticado não encontrado no DB."));
+
+            // Passamos o NOME DE EXIBIÇÃO do usuário (user.getUsername()) e o UserDetails
+            // para o JwtService gerar o token.
+            String token = jwtService.generateToken(user.getUsername(), (UserDetails) authentication.getPrincipal()); // <--- CORREÇÃO AQUI
+
+            System.out.println("JWT Token generated: " + token);
             return token;
         } catch (org.springframework.security.core.AuthenticationException e) {
-            // Captura exceções específicas de autenticação (BadCredentialsException, DisabledException, etc.)
-            System.err.println("Authentication failed for " + loginDto.getEmail() + ": " + e.getMessage()); // Log de erro específico
-            throw new RuntimeException("Credenciais inválidas. Verifique seu e-mail e senha.", e); // <--- Relança como RuntimeException tratável
+            System.err.println("Authentication failed for " + loginDto.getEmail() + ": " + e.getMessage());
+            throw new RuntimeException("Credenciais inválidas. Verifique seu e-mail e senha.", e);
         } catch (Exception e) {
-            // Captura outras exceções inesperadas
-            System.err.println("An unexpected error occurred during login for " + loginDto.getEmail() + ": " + e.getMessage()); // Log de erro inesperado
-            throw new RuntimeException("Ocorreu um erro inesperado durante o login. Tente novamente.", e); // <--- Relança como RuntimeException
+            System.err.println("An unexpected error occurred during login for " + loginDto.getEmail() + ": " + e.getMessage());
+            throw new RuntimeException("Ocorreu um erro inesperado durante o login. Tente novamente.", e);
         }
     }
 }
