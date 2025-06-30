@@ -54,7 +54,8 @@ Este projeto foi desenvolvido com base em decisões técnicas que visam as melho
 ### Passos para Execução
 1.  **Clone o repositório:**
     bash
-    git clone https://github.com/RoberthFurtadoDev/Sistema-de-Controle-Financeiro-Pessoal
+    ```git clone 
+    https://github.com/RoberthFurtadoDev/Sistema-de-Controle-Financeiro-Pessoal
     ```
 2.  **Crie o Banco de Dados:**
     *   Abra o pgAdmin ou outro cliente PostgreSQL.
