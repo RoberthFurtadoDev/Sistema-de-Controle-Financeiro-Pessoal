@@ -1,5 +1,8 @@
 # Sistema de Controle Financeiro Pessoal - Backend
 
+# ![Backend](https://i.imgur.com/Tr8p0Cw.png)
+
+
 ## 📖 Descrição
 
 Este projeto é uma API RESTful completa para um sistema de controle financeiro pessoal, projetada para capacitar os usuários a gerenciar suas finanças de forma eficaz. A aplicação permite o registro de usuários, criação de categorias personalizadas de receitas e despesas, e o lançamento de transações detalhadas.
