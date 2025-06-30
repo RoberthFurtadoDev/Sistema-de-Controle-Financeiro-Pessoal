@@ -1,7 +1,5 @@
 # Sistema de Controle Financeiro Pessoal - Backend
 
-!([https://img.shields.io/badge/status-funcionalidades_core_completas-brightgreen](https://img.shields.io/badge/status-funcionalidades_core_completas-brightgreen))
-
 ## 📖 Descrição
 
 Este projeto é uma API RESTful completa para um sistema de controle financeiro pessoal, projetada para capacitar os usuários a gerenciar suas finanças de forma eficaz. A aplicação permite o registro de usuários, criação de categorias personalizadas de receitas e despesas, e o lançamento de transações detalhadas.
