@@ -50,6 +50,7 @@ Este projeto foi desenvolvido com base em decisões técnicas que visam as melho
 ## ⚙️ Como Rodar o Projeto Localmente
 
     **Repositório Frontend:**
+    ```git clone 
     https://github.com/RoberthFurtadoDev/sistema-financeiro-frontend
     ```
 
