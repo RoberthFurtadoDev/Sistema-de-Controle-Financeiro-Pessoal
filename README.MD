@@ -52,8 +52,9 @@ Este projeto foi desenvolvido com base em decisões técnicas que visam as melho
 *   PostgreSQL instalado e rodando
 
 ### Passos para Execução
-1.  **Clone o repositório:**bash
-    git clone https://URL_DO_SEU_REPOSITORIO_AQUI
+1.  **Clone o repositório:**
+    bash
+    git clone https://github.com/RoberthFurtadoDev/Sistema-de-Controle-Financeiro-Pessoal
     ```
 2.  **Crie o Banco de Dados:**
     *   Abra o pgAdmin ou outro cliente PostgreSQL.
@@ -82,7 +83,5 @@ Para rodar a suíte de testes unitários, execute o seguinte comando na raiz do 
 ```bash
 mvn test
 ```
-
 ---
-
 Desenvolvido por: 💻 Roberth Furtado © 2025 | Todos os direitos reservados...
