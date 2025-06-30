@@ -49,7 +49,7 @@ Este projeto foi desenvolvido com base em decisões técnicas que visam as melho
 
 ## ⚙️ Como Rodar o Projeto Localmente
 
-    ```Repositório Frontend
+    **Repositório Frontend:**
     https://github.com/RoberthFurtadoDev/sistema-financeiro-frontend
     ```
 
