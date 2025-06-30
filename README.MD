@@ -49,9 +49,9 @@ Este projeto foi desenvolvido com base em decisões técnicas que visam as melho
 
 ## ⚙️ Como Rodar o Projeto Localmente
 
->  **Frontend repositório:**
+    #Frontend repositório:
     
-    ```git clone 
+    ```
     https://github.com/RoberthFurtadoDev/sistema-financeiro-frontend
     ```
 
