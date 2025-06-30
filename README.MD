@@ -51,7 +51,6 @@ Este projeto foi desenvolvido com base em decisões técnicas que visam as melho
 
     #Frontend repositório:
     
-    ```
     https://github.com/RoberthFurtadoDev/sistema-financeiro-frontend
     ```
 
